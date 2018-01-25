@@ -16,11 +16,14 @@ email                : kelly.thorp@ars.usda.gov
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import pyqtSignature, QFileInfo, Qt, QVariant
-from PyQt4.QtGui import QDialog, QFileDialog, QApplication, QMessageBox 
+from __future__ import absolute_import
+from builtins import str
+from builtins import range
+from qgis.PyQt.QtCore import QFileInfo, Qt, QVariant
+from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QApplication, QMessageBox 
 from qgis.core import QgsMapLayer, QgsMapLayerRegistry, QgsFeature, QgsVectorLayer
 from qgis.core import QgsField, QgsPoint, QgsRectangle, QgsGeometry, QgsVectorFileWriter
-from Ui_Raster2VectorDlg import Ui_Raster2VectorDlg
+from .Ui_Raster2VectorDlg import Ui_Raster2VectorDlg
 import os
 # create the dialog for Raster2VectorDlg
 class Raster2VectorDlg(QDialog):
@@ -54,7 +57,7 @@ class Raster2VectorDlg(QDialog):
         else:
             return             
             
-        ofile = QFileDialog.getSaveFileName(self,
+        ofile, __ = QFileDialog.getSaveFileName(self,
                                            'Specify Output Shapefile:',
                                            path,
                                            '*.shp') 

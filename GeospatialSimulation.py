@@ -16,22 +16,25 @@ email                : kelly.thorp@ars.usda.gov
  *                                                                         *
  ***************************************************************************/
 """
+from __future__ import absolute_import
 # Import the PyQt and QGIS libraries
-from PyQt4.QtCore import QObject, QSettings
-from PyQt4.QtGui import QAction, QIcon, QMessageBox
+from builtins import object
+from qgis.PyQt.QtCore import QObject, QSettings
+from qgis.PyQt.QtWidgets import QAction, QMessageBox
+from qgis.PyQt.QtGui import QIcon
 # Initialize Qt resources from file resources.py
 import os
 import sys
-import resources
+from . import resources
 # Import the code for the dialogs
-from GeoprocessorDlg import GeoprocessorDlg
-from Raster2VectorDlg import Raster2VectorDlg
-from ControlFileDlg import ControlFileDlg
-from SimControllerDlg import SimControllerDlg
-from OptimizationFileDlg import OptimizationFileDlg
-from SimOptimizerDlg import SimOptimizerDlg
+from .GeoprocessorDlg import GeoprocessorDlg
+from .Raster2VectorDlg import Raster2VectorDlg
+from .ControlFileDlg import ControlFileDlg
+from .SimControllerDlg import SimControllerDlg
+from .OptimizationFileDlg import OptimizationFileDlg
+from .SimOptimizerDlg import SimOptimizerDlg
 
-class GeospatialSimulation: 
+class GeospatialSimulation(object): 
 
     def __init__(self, iface):
         # Save reference to the QGIS interface

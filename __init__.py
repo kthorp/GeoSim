@@ -17,8 +17,9 @@ email                : kelly.thorp@ars.usda.gov
  ***************************************************************************/
  This script initializes the plugin, making it known to QGIS.
 """
+from __future__ import absolute_import
 
 def classFactory(iface): 
     # load GeospatialSimulation class from file GeospatialSimulation
-    from GeospatialSimulation import GeospatialSimulation 
+    from .GeospatialSimulation import GeospatialSimulation 
     return GeospatialSimulation(iface)

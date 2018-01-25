@@ -16,14 +16,17 @@ email                : kelly.thorp@ars.usda.gov
  *                                                                         *
  ***************************************************************************/
 """
+from __future__ import absolute_import
 
-from PyQt4.QtCore import pyqtSignature, Qt
-from PyQt4.QtGui import QDialog, QFileDialog, QMessageBox, QApplication
+from builtins import next
+from builtins import str
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox, QApplication
 from qgis.core import QgsFeature, QgsFeatureRequest
-from Ui_SimOptimizerDlg import Ui_SimOptimizerDlg
-import OptimizationFile
-import SimControllerDlg
-import anneal
+from .Ui_SimOptimizerDlg import Ui_SimOptimizerDlg
+from . import OptimizationFile
+from . import SimControllerDlg
+from . import anneal
 import os
 import math
 
@@ -45,7 +48,7 @@ class SimOptimizerDlg(QDialog):
         
     @pyqtSignature("on_btnBrowse_clicked()")
     def on_btnBrowse_clicked(self):            
-        f = QFileDialog.getOpenFileName(self,
+        f, __ = QFileDialog.getOpenFileName(self,
                                         'Specify Simulation Optimization File:',
                                         os.getcwd(),
                                         '*.gso') 
@@ -135,7 +138,7 @@ class SimOptimizerDlg(QDialog):
                 x0[:] = []
                 lower[:] = []
                 upper[:] = []
-                bfeat = self.blayer.getFeatures(featreq.setFilterFid(featid)).next()
+                bfeat = next(self.blayer.getFeatures(featreq.setFilterFid(featid)))
                 for key in sorted(self.ofile.OptAttributes.keys()):
                     x0.append(float(self.ofile.OptAttributes[key][1]))
                     lower.append(float(self.ofile.OptAttributes[key][2]))
@@ -192,7 +195,7 @@ class SimOptimizerDlg(QDialog):
         for featid in bfeatids:
             i+=1
             attr.clear()
-            bfeat = self.blayer.getFeatures(featreq.setFilterFid(featid)).next()       
+            bfeat = next(self.blayer.getFeatures(featreq.setFilterFid(featid)))       
             for key in sorted(self.ofile.OptAttributes.keys()):
                 bfindx = self.bprovider.fieldNameIndex(self.ofile.OptAttributes[key][0])
                 ftype = str(self.bprovider.fields()[bfindx].typeName())
@@ -250,7 +253,7 @@ class Optimize(anneal.Anneal):
         for featid in self.bfeatids:
             i+=1
             attr.clear()
-            bfeat = self.blayer.getFeatures(featreq.setFilterFid(featid)).next()
+            bfeat = next(self.blayer.getFeatures(featreq.setFilterFid(featid)))
             for key in sorted(self.ofile.OptAttributes.keys()):
                 bfindx = self.bprovider.fieldNameIndex(self.ofile.OptAttributes[key][0])
                 ftype = str(self.bprovider.fields()[bfindx].typeName())
@@ -286,7 +289,7 @@ class Optimize(anneal.Anneal):
         #Calculate error
         sqrerr = []
         for featid in self.bfeatids:
-            bfeat = self.blayer.getFeatures(featreq.setFilterFid(featid)).next()
+            bfeat = next(self.blayer.getFeatures(featreq.setFilterFid(featid)))
             for key in sorted(self.ofile.ObjAttributes.keys()):
                 measured = float(bfeat.attribute(self.ofile.ObjAttributes[key][0]))
                 simulated = float(bfeat.attribute(self.ofile.ObjAttributes[key][1]))

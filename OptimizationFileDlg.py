@@ -16,12 +16,15 @@ email                : kelly.thorp@ars.usda.gov
  *                                                                         *
  ***************************************************************************/
 """
+from __future__ import absolute_import
+from builtins import str
+from builtins import range
 from PyQt4.QtCore import pyqtSignature
-from PyQt4.QtGui import QDialog, QFileDialog, QComboBox, QMessageBox, QTableWidgetItem
+from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QComboBox, QMessageBox, QTableWidgetItem
 from qgis.core import QgsMapLayer, QGis, QgsMapLayerRegistry
-from Ui_OptimizationFileDlg import Ui_OptimizationFileDlg
+from .Ui_OptimizationFileDlg import Ui_OptimizationFileDlg
 
-import OptimizationFile
+from . import OptimizationFile
 import os
 
 # create the dialog for ControlFileDlg
@@ -46,7 +49,7 @@ class OptimizationFileDlg(QDialog):
                     
     @pyqtSignature("on_btnBrowse_clicked()")
     def on_btnBrowse_clicked(self):    
-        f = QFileDialog.getOpenFileName(self,
+        f, __ = QFileDialog.getOpenFileName(self,
                                         'Specify Simulation Control File:',
                                         os.getcwd(),
                                         '*.gsc') 
@@ -83,7 +86,7 @@ class OptimizationFileDlg(QDialog):
             
     @pyqtSignature("on_btnLoad_clicked()")
     def on_btnLoad_clicked(self):
-        f = QFileDialog.getOpenFileName(self,
+        f, __ = QFileDialog.getOpenFileName(self,
                                         'Load Optimization Control File:',
                                         os.getcwd(),
                                         '*.gso')
@@ -147,7 +150,7 @@ class OptimizationFileDlg(QDialog):
                    
     @pyqtSignature("on_btnSave_clicked()")
     def on_btnSave_clicked(self):
-        f = QFileDialog.getSaveFileName(self,
+        f, __ = QFileDialog.getSaveFileName(self,
                                         'Save Optimization Control File:',
                                         os.getcwd(),
                                         '*.gso')

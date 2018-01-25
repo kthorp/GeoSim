@@ -16,9 +16,10 @@ email                : kelly.thorp@ars.usda.gov
  *                                                                         *
  ***************************************************************************/
 """
+from builtins import object
 import os
 
-class ControlFile():
+class ControlFile(object):
     "Read and write the simulation control file for Geospatial Simulation"
     
     def __init__(self):          

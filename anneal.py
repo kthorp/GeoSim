@@ -3,6 +3,8 @@
 # Author: Travis Oliphant 2002                                                                               
 # Modified for use with simulation models: Kelly Thorp 2012
                                                                                                                                                                                      
+from builtins import range
+from builtins import object
 import numpy as np
 
 class Anneal(object):
@@ -164,7 +166,7 @@ class Anneal(object):
         return [self.iterat, self.T, self.feval, self.p, self.accepted, self.declined, \
                 self.best.x, self.best.cost, retval]
                                                                                                                                                                                                                                         
-class state:
+class state(object):
     def __init__(self):
         self.x = None
         self.cost = None

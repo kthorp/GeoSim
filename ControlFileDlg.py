@@ -16,12 +16,15 @@ email                : kelly.thorp@ars.usda.gov
  *                                                                         *
  ***************************************************************************/
 """
+from __future__ import absolute_import
+from builtins import str
+from builtins import range
 from PyQt4.QtCore import pyqtSignature
-from PyQt4.QtGui import QDialog, QFileDialog, QComboBox, QMessageBox, QTableWidgetItem
+from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QComboBox, QMessageBox, QTableWidgetItem
 from qgis.core import QgsMapLayer, QGis, QgsMapLayerRegistry
-from Ui_ControlFileDlg import Ui_ControlFileDlg
+from .Ui_ControlFileDlg import Ui_ControlFileDlg
 
-import ControlFile
+from . import ControlFile
 import os
 
 # create the dialog for ControlFileDlg
@@ -68,7 +71,7 @@ class ControlFileDlg(QDialog):
             
     @pyqtSignature("on_btnLoad_clicked()")
     def on_btnLoad_clicked(self):
-        f = QFileDialog.getOpenFileName(self,
+        f, __ = QFileDialog.getOpenFileName(self,
                                         'Load Simulation Control File:',
                                         os.getcwd(),
                                         '*.gsc')
@@ -115,7 +118,7 @@ class ControlFileDlg(QDialog):
                    
     @pyqtSignature("on_btnSave_clicked()")
     def on_btnSave_clicked(self):
-        f = QFileDialog.getSaveFileName(self,
+        f, __ = QFileDialog.getSaveFileName(self,
                                         'Save Simulation Control File:',
                                         os.getcwd(),
                                         '*.gsc')

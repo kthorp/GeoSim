@@ -16,10 +16,13 @@ email                : kelly.thorp@ars.usda.gov
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import pyqtSignature, Qt
-from PyQt4.QtGui import QDialog, QMessageBox, QListWidgetItem, QApplication
+from __future__ import absolute_import
+from builtins import next
+from builtins import str
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QDialog, QMessageBox, QListWidgetItem, QApplication
 from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsField, QgsSpatialIndex, QgsFeatureRequest
-from Ui_GeoprocessorDlg import Ui_GeoprocessorDlg
+from .Ui_GeoprocessorDlg import Ui_GeoprocessorDlg
 # create the dialog for GeoprocessorDlg
 class GeoprocessorDlg(QDialog):
     def __init__(self, iface): 
@@ -158,7 +161,7 @@ class GeoprocessorDlg(QDialog):
             intersect = spindex.intersects(bgeom.boundingBox())
             data[:] = []
             for fid in intersect:               
-                pfeat = self.player.getFeatures(featreq.setFilterFid(fid)).next()
+                pfeat = next(self.player.getFeatures(featreq.setFilterFid(fid)))
                 if pfeat.geometry().intersects(bgeom) == False:
                     data.append(fid)           
             for fid in data:        
@@ -173,7 +176,7 @@ class GeoprocessorDlg(QDialog):
                     return
                 data[:] = []
                 for fid in intersect:
-                    pfeat = self.player.getFeatures(featreq.setFilterFid(fid)).next()
+                    pfeat = next(self.player.getFeatures(featreq.setFilterFid(fid)))
                     if self.oindex in [0,1,2,3,4]:
                         data.append(float(pfeat.attribute(item.text())))
                     elif self.oindex in [5,6]:
@@ -199,7 +202,7 @@ class GeoprocessorDlg(QDialog):
                     value = 0.0
                     totalarea = 0.0
                     for fid in intersect:
-                        pfeat = self.player.getFeatures(featreq.setFilterFid(fid)).next()
+                        pfeat = next(self.player.getFeatures(featreq.setFilterFid(fid)))
                         pgeom = pfeat.geometry()
                         isect = bgeom.intersection(pgeom)
                         parea = isect.area()
@@ -212,7 +215,7 @@ class GeoprocessorDlg(QDialog):
                     for i in data:
                         ddic.update({i : 0.0})
                     for fid in intersect:
-                        pfeat = self.player.getFeatures(featreq.setFilterFid(fid)).next()
+                        pfeat = next(self.player.getFeatures(featreq.setFilterFid(fid)))
                         pgeom = pfeat.geometry()
                         isect = bgeom.intersection(pgeom)
                         parea = isect.area()
@@ -220,7 +223,7 @@ class GeoprocessorDlg(QDialog):
                         parea = parea + ddic[key]
                         ddic.update({key : parea})
                     parea = -1
-                    for key in ddic.keys():
+                    for key in list(ddic.keys()):
                         if ddic[key] > parea:
                             parea = ddic[key]
                             value = key

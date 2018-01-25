@@ -16,13 +16,16 @@ email                : kelly.thorp@ars.usda.gov
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import Qt, pyqtSignature 
-from PyQt4.QtGui import QApplication, QDialog, QFileDialog, QMessageBox
+from __future__ import absolute_import
+from builtins import str
+from builtins import range
+from qgis.PyQt.QtCore import Qt 
+from qgis.PyQt.QtWidgets import QApplication, QDialog, QFileDialog, QMessageBox
 from qgis.core import QgsField
-from Ui_SimControllerDlg import Ui_SimControllerDlg
+from .Ui_SimControllerDlg import Ui_SimControllerDlg
 import os
 import subprocess
-import ControlFile
+from . import ControlFile
 
 # create the dialog for SimControllerDlg
 class SimControllerDlg(QDialog):
@@ -42,7 +45,7 @@ class SimControllerDlg(QDialog):
 
     @pyqtSignature("on_btnBrowse_clicked()")
     def on_btnBrowse_clicked(self):            
-        ofile = QFileDialog.getOpenFileName(self,
+        ofile, __ = QFileDialog.getOpenFileName(self,
                                            'Specify Simulation Control File:',
                                            os.getcwd(),
                                            '*.gsc') 
@@ -132,7 +135,7 @@ class SimControllerDlg(QDialog):
             
             b1+=1          
             #Write model input files
-            for key1 in cfile.TemplateInput.keys():
+            for key1 in list(cfile.TemplateInput.keys()):
                 f = open(cfile.TemplateInput[key1][0], 'r')
                 lines = f.readlines()
                 f.close()
@@ -144,7 +147,7 @@ class SimControllerDlg(QDialog):
                 else:
                     lines.pop(0)
                     
-                for key2 in cfile.AttributeCode.keys():    
+                for key2 in list(cfile.AttributeCode.keys()):    
                     bfindx = bprovider.fieldNameIndex(cfile.AttributeCode[key2][0])
                     value = bfeat.attribute(cfile.AttributeCode[key2][0])
                     ftype = str(bfields[bfindx].typeName())
@@ -184,7 +187,7 @@ class SimControllerDlg(QDialog):
             
             #Read model output files
             attr.clear()
-            for key1 in cfile.InstructionOutput.keys():
+            for key1 in list(cfile.InstructionOutput.keys()):
                 f = open(cfile.InstructionOutput[key1][0], 'r')
                 lines = f.readlines()
                 f.close()

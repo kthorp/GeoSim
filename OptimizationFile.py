@@ -16,9 +16,11 @@ email                : kelly.thorp@ars.usda.gov
  *                                                                         *
  ***************************************************************************/
 """
+from builtins import str
+from builtins import object
 import os
 
-class OptimizationFile():
+class OptimizationFile(object):
     "Read and write the simulation optimization file for Geospatial Simulation"
     
     def __init__(self):          
