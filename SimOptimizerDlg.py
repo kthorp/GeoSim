@@ -20,7 +20,7 @@ from __future__ import absolute_import
 
 from builtins import next
 from builtins import str
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import Qt, pyqtSlot
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox, QApplication
 from qgis.core import QgsFeature, QgsFeatureRequest
 from .Ui_SimOptimizerDlg import Ui_SimOptimizerDlg
@@ -46,7 +46,7 @@ class SimOptimizerDlg(QDialog):
         
         self.ofilename = ''        
         
-    @pyqtSignature("on_btnBrowse_clicked()")
+    @pyqtSlot()
     def on_btnBrowse_clicked(self):            
         f, __ = QFileDialog.getOpenFileName(self,
                                         'Specify Simulation Optimization File:',
@@ -58,11 +58,11 @@ class SimOptimizerDlg(QDialog):
             self.ui.tbxFile.setText(self.ofilename)
             os.chdir(os.path.dirname(str(f)))
         
-    @pyqtSignature("on_tbxFile_textEdited(QString)")
+    @pyqtSlot()
     def on_tbxFile_textEdited(self):
         self.ofilename = self.ui.tbxFile.text()  
         
-    @pyqtSignature("on_btnRun_clicked()")
+    @pyqtSlot()
     def on_btnRun_clicked(self):
         
         #Open optimization file
@@ -226,7 +226,7 @@ class SimOptimizerDlg(QDialog):
                 self.ui.textSimulation.append(line)
             sim.on_btnExit_clicked()    
            
-    @pyqtSignature("on_btnExit_clicked()")
+    @pyqtSlot()
     def on_btnExit_clicked(self):
         self.close()  
             

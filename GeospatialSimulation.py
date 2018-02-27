@@ -122,9 +122,11 @@ class GeospatialSimulation(object):
         
     def Help(self):
         path = os.path.dirname(sys.modules[__name__].__file__)
-        if sys.platform == 'linux':
-            os.system(path+"//Geospatial Simulation README.pdf")
-        elif sys.platform == 'win32':
-            os.startfile(path+"\\Geospatial Simulation README.pdf")
+        if sys.platform[:-1] == 'linux':
+            os.system(path+"//HTP Geoprocessor README.pdf")
+        elif sys.platform == 'darwin':
+            os.system(path+"//HTP Geoprocessor README.pdf")
+        elif sys.platform == 'win32' or 'win64':
+            os.startfile(path+"\\HTP Geoprocessor README.pdf")
         else:
             QMessageBox.critical(self.iface.mainWindow(),'Help','Error opening document. Look in plug-in install directory for PDF.')

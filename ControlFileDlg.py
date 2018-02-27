@@ -19,9 +19,9 @@ email                : kelly.thorp@ars.usda.gov
 from __future__ import absolute_import
 from builtins import str
 from builtins import range
-from PyQt4.QtCore import pyqtSignature
+from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QComboBox, QMessageBox, QTableWidgetItem
-from qgis.core import QgsMapLayer, QGis, QgsMapLayerRegistry
+from qgis.core import QgsMapLayer, QgsProject, QgsWkbTypes
 from .Ui_ControlFileDlg import Ui_ControlFileDlg
 
 from . import ControlFile
@@ -40,26 +40,26 @@ class ControlFileDlg(QDialog):
         
         for i in self.layers:
             if i.type() == QgsMapLayer.VectorLayer:
-                if i.geometryType() == QGis.Polygon:
+                if i.geometryType() == QgsWkbTypes.PolygonGeometry:
                     self.ui.cmbBaseLayer.addItem(i.name(), i.id())
         bindex = self.ui.cmbBaseLayer.currentIndex()
         self.on_cmbBaseLayer_activated(bindex)
         
         self.ui.btnBrowse.setFocus()
                     
-    @pyqtSignature("on_btnBrowse_clicked()")
+    @pyqtSlot()
     def on_btnBrowse_clicked(self):    
         mdir = QFileDialog.getExistingDirectory(self,'Specify Model Directory:') 
         if mdir != '':
             self.ui.tbxModelDirectory.setText(mdir)
     
-    @pyqtSignature("on_cmbBaseLayer_activated(int)")
+    @pyqtSlot(int)
     def on_cmbBaseLayer_activated(self, index):
         if self.ui.cmbBaseLayer.count() > 0:
             bid = self.ui.cmbBaseLayer.itemData(index)
-            self.blayer = QgsMapLayerRegistry.instance().mapLayer(str(bid))
+            self.blayer = QgsProject.instance().mapLayer(str(bid))
             
-    @pyqtSignature("on_tblAttributeCode_cellDoubleClicked(int,int)")
+    @pyqtSlot(int,int)
     def on_tblAttributeCode_cellDoubleClicked(self, row, col):
         if self.ui.cmbBaseLayer.count() > 0 and col == 0:
             newcmb = QComboBox()
@@ -69,7 +69,7 @@ class ControlFileDlg(QDialog):
                 newcmb.addItem(fld.name())
             self.ui.tblAttributeCode.setCellWidget(row,col,newcmb)
             
-    @pyqtSignature("on_btnLoad_clicked()")
+    @pyqtSlot()
     def on_btnLoad_clicked(self):
         f, __ = QFileDialog.getOpenFileName(self,
                                         'Load Simulation Control File:',
@@ -116,7 +116,7 @@ class ControlFileDlg(QDialog):
             self.ui.tblAttributeType.setItem(key,1,QTableWidgetItem(cfile.AttributeType[key][1]))
         self.ui.tbxCommandLine.setText(cfile.CommandLine)
                    
-    @pyqtSignature("on_btnSave_clicked()")
+    @pyqtSlot()
     def on_btnSave_clicked(self):
         f, __ = QFileDialog.getSaveFileName(self,
                                         'Save Simulation Control File:',
@@ -163,6 +163,6 @@ class ControlFileDlg(QDialog):
         cfile.CommandLine = self.ui.tbxCommandLine.text()
         cfile.WriteFile(f)
                 
-    @pyqtSignature("on_btnExit_clicked()")
+    @pyqtSlot()
     def on_btnExit_clicked(self):
         self.close()

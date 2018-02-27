@@ -19,9 +19,9 @@ email                : kelly.thorp@ars.usda.gov
 from __future__ import absolute_import
 from builtins import str
 from builtins import range
-from qgis.PyQt.QtCore import QFileInfo, Qt, QVariant
+from qgis.PyQt.QtCore import QFileInfo, Qt, QVariant, pyqtSlot
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QApplication, QMessageBox 
-from qgis.core import QgsMapLayer, QgsMapLayerRegistry, QgsFeature, QgsVectorLayer
+from qgis.core import QgsMapLayer, QgsProject, QgsFeature, QgsVectorLayer
 from qgis.core import QgsField, QgsPoint, QgsRectangle, QgsGeometry, QgsVectorFileWriter
 from .Ui_Raster2VectorDlg import Ui_Raster2VectorDlg
 import os
@@ -43,14 +43,14 @@ class Raster2VectorDlg(QDialog):
         index = self.ui.cmbProcessLayer.currentIndex()
         self.on_cmbProcessLayer_activated(index)
         
-    @pyqtSignature("on_cmbProcessLayer_activated(int)")
+    @pyqtSlot(int)
     def on_cmbProcessLayer_activated(self, index):
         self.ui.ProgressBar.setValue(0)
         if self.ui.cmbProcessLayer.count() > 0:
             pid = self.ui.cmbProcessLayer.itemData(index)
-            self.player = QgsMapLayerRegistry.instance().mapLayer(str(pid))
+            self.player = QgsProject.instance().mapLayer(str(pid))
 
-    @pyqtSignature("on_btnBrowse_clicked()")
+    @pyqtSlot()
     def on_btnBrowse_clicked(self):
         if self.ui.cmbProcessLayer.count() > 0:            
             path = QFileInfo(self.player.source()).absolutePath()
@@ -66,7 +66,7 @@ class Raster2VectorDlg(QDialog):
             self.outfile = ofile
             self.ui.tbxOutput.setText(self.outfile)
         
-    @pyqtSignature("on_tbxOutput_textEdited(QString)")
+    @pyqtSlot()
     def on_tbxOutput_textEdited(self):
         if os.path.exists(self.ui.tbxOutput.text()):
             ofile = os.path.basename(str(self.ui.tbxOutput.text())) 
@@ -82,7 +82,7 @@ class Raster2VectorDlg(QDialog):
             else:
                 self.ui.tbxOutput.setText(self.outfile)
 
-    @pyqtSignature("on_btnRun_clicked()")
+    @pyqtSlot()
     def on_btnRun_clicked(self):
                 
         if self.ui.cmbProcessLayer.count() <= 0:
@@ -184,6 +184,6 @@ class Raster2VectorDlg(QDialog):
         self.setCursor(Qt.ArrowCursor)
         self.close()
                  
-    @pyqtSignature("on_btnExit_clicked()")
+    @pyqtSlot()
     def on_btnExit_clicked(self):
         self.close() 

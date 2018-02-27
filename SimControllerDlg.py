@@ -19,7 +19,7 @@ email                : kelly.thorp@ars.usda.gov
 from __future__ import absolute_import
 from builtins import str
 from builtins import range
-from qgis.PyQt.QtCore import Qt 
+from qgis.PyQt.QtCore import Qt, pyqtSlot 
 from qgis.PyQt.QtWidgets import QApplication, QDialog, QFileDialog, QMessageBox
 from qgis.core import QgsField
 from .Ui_SimControllerDlg import Ui_SimControllerDlg
@@ -43,7 +43,7 @@ class SimControllerDlg(QDialog):
         
         self.ui.textBrowser.document().setMaximumBlockCount(500)
 
-    @pyqtSignature("on_btnBrowse_clicked()")
+    @pyqtSlot()
     def on_btnBrowse_clicked(self):            
         ofile, __ = QFileDialog.getOpenFileName(self,
                                            'Specify Simulation Control File:',
@@ -55,11 +55,11 @@ class SimControllerDlg(QDialog):
             self.ui.tbxFile.setText(self.cfilename)
             os.chdir(os.path.dirname(str(ofile)))
                 
-    @pyqtSignature("on_tbxFile_textEdited(QString)")
+    @pyqtSlot()
     def on_tbxFile_textEdited(self):
         self.cfilename = self.ui.tbxFile.text()
  
-    @pyqtSignature("on_btnRun_clicked()")
+    @pyqtSlot()
     def on_btnRun_clicked(self):
                 
         #Open control file
@@ -246,6 +246,6 @@ class SimControllerDlg(QDialog):
         
         self.setCursor(Qt.ArrowCursor)       
                                  
-    @pyqtSignature("on_btnExit_clicked()")
+    @pyqtSlot()
     def on_btnExit_clicked(self):
         self.close() 

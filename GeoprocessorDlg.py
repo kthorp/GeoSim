@@ -19,9 +19,9 @@ email                : kelly.thorp@ars.usda.gov
 from __future__ import absolute_import
 from builtins import next
 from builtins import str
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import Qt, pyqtSlot
 from qgis.PyQt.QtWidgets import QDialog, QMessageBox, QListWidgetItem, QApplication
-from qgis.core import QGis, QgsMapLayer, QgsMapLayerRegistry, QgsField, QgsSpatialIndex, QgsFeatureRequest
+from qgis.core import QgsMapLayer, QgsProject, QgsField, QgsSpatialIndex, QgsFeatureRequest, QgsWkbTypes
 from .Ui_GeoprocessorDlg import Ui_GeoprocessorDlg
 # create the dialog for GeoprocessorDlg
 class GeoprocessorDlg(QDialog):
@@ -45,7 +45,7 @@ class GeoprocessorDlg(QDialog):
         index = self.ui.cmbObjective.currentIndex()
         self.on_cmbObjective_activated(index)
 
-    @pyqtSignature("on_cmbObjective_activated(int)")
+    @pyqtSlot(int)
     def on_cmbObjective_activated(self, index):
         self.ui.ProgressBar.setValue(0)
         self.ui.cmbBaseLayer.clear()
@@ -54,22 +54,22 @@ class GeoprocessorDlg(QDialog):
         if index in [0,1,2,3]: #Point in polygon processing
             for i in self.layers:
                 if i.type() == QgsMapLayer.VectorLayer:
-                    if i.geometryType() == QGis.Polygon:
+                    if i.geometryType() == QgsWkbTypes.PolygonGeometry:
                         self.ui.cmbBaseLayer.addItem(i.name(), i.id())
-                    if i.geometryType() == QGis.Point:
+                    if i.geometryType() == QgsWkbTypes.PointGeometry:
                         self.ui.cmbProcessLayer.addItem(i.name(), i.id())
         elif index in [4,5]: #Polygon in polygon processing
             for i in self.layers:
                 if i.type() == QgsMapLayer.VectorLayer:
-                    if i.geometryType() == QGis.Polygon:
+                    if i.geometryType() == QgsWkbTypes.PolygonGeometry:
                         self.ui.cmbBaseLayer.addItem(i.name(), i.id())
                         self.ui.cmbProcessLayer.addItem(i.name(), i.id())
         elif index in [6]: #Polygon attribute to points
             for i in self.layers:
                 if i.type() == QgsMapLayer.VectorLayer:
-                    if i.geometryType() == QGis.Point:
+                    if i.geometryType() == QgsWkbTypes.PointGeometry:
                         self.ui.cmbBaseLayer.addItem(i.name(), i.id())
-                    if i.geometryType() == QGis.Polygon:
+                    if i.geometryType() == QgsWkbTypes.PolygonGeometry:
                         self.ui.cmbProcessLayer.addItem(i.name(), i.id())                                
         else:
             QMessageBox.critical(self, 'Vector Geoprocessor', 'Unknown Objective')
@@ -80,18 +80,18 @@ class GeoprocessorDlg(QDialog):
         pindex = self.ui.cmbProcessLayer.currentIndex()    
         self.on_cmbProcessLayer_activated(pindex)  
             
-    @pyqtSignature("on_cmbBaseLayer_activated(int)")
+    @pyqtSlot(int)
     def on_cmbBaseLayer_activated(self, index):
         self.ui.ProgressBar.setValue(0)
         if self.ui.cmbBaseLayer.count() > 0:
             bid = self.ui.cmbBaseLayer.itemData(index)
-            self.blayer = QgsMapLayerRegistry.instance().mapLayer(str(bid))
+            self.blayer = QgsProject.instance().mapLayer(str(bid))
     
-    @pyqtSignature("on_cmbProcessLayer_activated(int)")
+    @pyqtSlot(int)
     def on_cmbProcessLayer_activated(self, index):            
         if self.ui.cmbProcessLayer.count() > 0:
             pid = self.ui.cmbProcessLayer.itemData(index)
-            self.player = QgsMapLayerRegistry.instance().mapLayer(str(pid))
+            self.player = QgsProject.instance().mapLayer(str(pid))
         else:
             return
         self.ui.listFields.clear()
@@ -104,7 +104,7 @@ class GeoprocessorDlg(QDialog):
             elif self.oindex in [5,6] and fld.typeName() == 'String': #String fields
                 self.ui.listFields.addItem(QListWidgetItem(fld.name()))
                 
-    @pyqtSignature("on_btnRun_clicked()")
+    @pyqtSlot()
     def on_btnRun_clicked(self):
         
         #Check for combo and list box selections
@@ -244,7 +244,7 @@ class GeoprocessorDlg(QDialog):
 
         self.setCursor(Qt.ArrowCursor)
             
-    @pyqtSignature("on_btnExit_clicked()")
+    @pyqtSlot()
     def on_btnExit_clicked(self):
         self.close()
     
