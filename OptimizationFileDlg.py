@@ -23,7 +23,6 @@ from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QComboBox, QMessageBox, QTableWidgetItem
 from qgis.core import QgsMapLayer, QgsProject, QgsWkbTypes 
 from .Ui_OptimizationFileDlg import Ui_OptimizationFileDlg
-
 from . import OptimizationFile
 import os
 
@@ -37,14 +36,6 @@ class OptimizationFileDlg(QDialog):
         self.iface = iface
         self.mc = iface.mapCanvas() 
         self.layers = self.mc.layers() #Only returns visible (active) layers
-        
-        for i in self.layers:
-            if i.type() == QgsMapLayer.VectorLayer:
-                if i.geometryType() == QgsWkbTypes.PolygonGeometry:
-                    self.ui.cmbBaseLayer.addItem(i.name(), i.id())
-        bindex = self.ui.cmbBaseLayer.currentIndex()
-        self.on_cmbBaseLayer_activated(bindex)
-        
         self.ui.btnBrowse.setFocus()
                     
     @pyqtSlot()
@@ -57,12 +48,35 @@ class OptimizationFileDlg(QDialog):
         if f != '':
             self.ui.tbxControlFile.setText(f)
             os.chdir(os.path.dirname(str(f)))
-   
-    @pyqtSlot(int)
-    def on_cmbBaseLayer_activated(self, index):
-        if self.ui.cmbBaseLayer.count() > 0:
-            bid = self.ui.cmbBaseLayer.itemData(index)
-            self.blayer = QgsProject.instance().mapLayer(str(bid))
+            self.SetBaseLayer(f)
+            
+    def SetBaseLayer(self,cfile):
+        cf = open(cfile, 'r')
+        lines = cf.readlines()
+        cf.close()
+        for i,line in enumerate(lines):
+            if line[0:5] == '*GSC2':
+                start = i
+        layername = lines[start+1].rstrip()
+        count = 0
+        for i in self.layers:
+            if i.type() == QgsMapLayer.VectorLayer:
+                if i.geometryType() == QgsWkbTypes.PolygonGeometry:
+                    if i.name() == layername:
+                        self.ui.cmbBaseLayer.addItem(i.name(), i.id())
+                        index = self.ui.cmbBaseLayer.findText(layername)
+                        self.ui.cmbBaseLayer.setCurrentIndex(index)
+                        bid = self.ui.cmbBaseLayer.itemData(index)
+                        self.blayer = QgsProject.instance().mapLayer(str(bid))
+                        self.ui.cmbBaseLayer.setEnabled(False)
+                        count+=1
+        if not count: #Count==0
+            QMessageBox.critical(self,'Optimization File Creator','Base Layer Not Found.')
+            return
+        if count > 1:
+            QMessageBox.critical(self,'Optimization File Creator',
+                                 'Found more than one layer with base layer name.')
+            return
             
     @pyqtSlot(int,int)
     def on_tblOptAttributes_cellDoubleClicked(self, row, col):
@@ -87,7 +101,7 @@ class OptimizationFileDlg(QDialog):
     @pyqtSlot()
     def on_btnLoad_clicked(self):
         f, __ = QFileDialog.getOpenFileName(self,
-                                        'Load Optimization Control File:',
+                                        'Load Optimization File:',
                                         os.getcwd(),
                                         '*.gso')
         if f == '':
@@ -100,12 +114,11 @@ class OptimizationFileDlg(QDialog):
             QMessageBox.critical(self, 'Optimization File Creator', 'Error Reading File.')
             return
         self.ui.tbxControlFile.setText(ofile.ControlFile)
-        index = self.ui.cmbBaseLayer.findText(ofile.BaseLayer)
-        if index < 0:
-            QMessageBox.critical(self, 'Optimization File Creator', 'Base Layer Not Found.')
+        if (os.path.exists(ofile.ControlFile)) == False:
+            QMessageBox.critical(self, 'Optimization File Creator', 'Control file does not exist.')
             return
         else:
-            self.ui.cmbBaseLayer.setCurrentIndex(index)
+            self.SetBaseLayer(ofile.ControlFile)            
         bprovider = self.blayer.dataProvider()
         fields = bprovider.fields()
         for key in sorted(ofile.OptAttributes.keys()):
@@ -151,7 +164,7 @@ class OptimizationFileDlg(QDialog):
     @pyqtSlot()
     def on_btnSave_clicked(self):
         f, __ = QFileDialog.getSaveFileName(self,
-                                        'Save Optimization Control File:',
+                                        'Save Optimization File:',
                                         os.getcwd(),
                                         '*.gso')
         if f == '':

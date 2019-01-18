@@ -148,4 +148,5 @@ class OptimizationFile(object):
         f.write(str(self.m) + '\n')
         f.write(str(self.n) + '\n')
         f.write(str(self.quench) + '\n')
-        f.write(str(self.boltzmann) + '\n')     
+        f.write(str(self.boltzmann) + '\n')
+        f.close()

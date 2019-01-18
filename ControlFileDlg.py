@@ -23,7 +23,6 @@ from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QComboBox, QMessageBox, QTableWidgetItem
 from qgis.core import QgsMapLayer, QgsProject, QgsWkbTypes
 from .Ui_ControlFileDlg import Ui_ControlFileDlg
-
 from . import ControlFile
 import os
 

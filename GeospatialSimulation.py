@@ -28,7 +28,7 @@ import sys
 from . import resources
 # Import the code for the dialogs
 from .GeoprocessorDlg import GeoprocessorDlg
-from .Raster2VectorDlg import Raster2VectorDlg
+#from .Raster2VectorDlg import Raster2VectorDlg
 from .ControlFileDlg import ControlFileDlg
 from .SimControllerDlg import SimControllerDlg
 from .OptimizationFileDlg import OptimizationFileDlg
@@ -55,7 +55,7 @@ class GeospatialSimulation(object):
     def initGui(self):  
         # Create action that will start plugin configuration
         icon = QIcon(":/plugins/geospatialsimulation/icon.png")
-        self.ras2vec = QAction(icon,u"Raster to Vector Converter", self.iface.mainWindow())
+        #self.ras2vec = QAction(icon,u"Raster to Vector Converter", self.iface.mainWindow())
         self.geoprocess = QAction(icon,u"Vector Geoprocessor", self.iface.mainWindow())
         self.controlfile = QAction(icon,u"Control File Creator", self.iface.mainWindow())
         self.simulate = QAction(icon,u"Simulation Controller", self.iface.mainWindow())
@@ -64,7 +64,7 @@ class GeospatialSimulation(object):
         self.helpme = QAction(icon, u"Help", self.iface.mainWindow())
         
         # connect the action to a method
-        self.ras2vec.triggered.connect(self.Raster2Vector)
+        #self.ras2vec.triggered.connect(self.Raster2Vector)
         self.geoprocess.triggered.connect(self.Geoprocess)
         self.controlfile.triggered.connect(self.MakeControlFile)
         self.simulate.triggered.connect(self.Simulate)
@@ -73,7 +73,7 @@ class GeospatialSimulation(object):
         self.helpme.triggered.connect(self.Help)
          
         # Add toolbar button and menu item        
-        self.iface.addPluginToMenu(u"&Geospatial Simulation", self.ras2vec)
+        #self.iface.addPluginToMenu(u"&Geospatial Simulation", self.ras2vec)
         self.iface.addPluginToMenu(u"&Geospatial Simulation", self.geoprocess)
         self.iface.addPluginToMenu(u"&Geospatial Simulation", self.controlfile)
         self.iface.addPluginToMenu(u"&Geospatial Simulation", self.simulate)
@@ -84,7 +84,7 @@ class GeospatialSimulation(object):
 
     def unload(self):
         # Remove the plugin menu item and icon
-        self.iface.removePluginMenu(u"&Geospatial Simulation", self.ras2vec)
+        #self.iface.removePluginMenu(u"&Geospatial Simulation", self.ras2vec)
         self.iface.removePluginMenu(u"&Geospatial Simulation", self.geoprocess)
         self.iface.removePluginMenu(u"&Geospatial Simulation", self.controlfile)
         self.iface.removePluginMenu(u"&Geospatial Simulation", self.simulate)
@@ -100,9 +100,9 @@ class GeospatialSimulation(object):
         #dlg.show() #Modeless dialog
         dlg.exec_() #Modal dialog
         
-    def Raster2Vector(self):
-        dlg = Raster2VectorDlg(self.iface)
-        dlg.exec_()
+    #def Raster2Vector(self):
+    #    dlg = Raster2VectorDlg(self.iface)
+    #    dlg.exec_()
         
     def MakeControlFile(self):
         dlg = ControlFileDlg(self.iface)
@@ -123,10 +123,10 @@ class GeospatialSimulation(object):
     def Help(self):
         path = os.path.dirname(sys.modules[__name__].__file__)
         if sys.platform[:-1] == 'linux':
-            os.system(path+"//HTP Geoprocessor README.pdf")
+            os.system(path+"//Geospatial Simulation README.pdf")
         elif sys.platform == 'darwin':
-            os.system(path+"//HTP Geoprocessor README.pdf")
+            os.system(path+"//Geospatial Simulation README.pdf")
         elif sys.platform == 'win32' or 'win64':
-            os.startfile(path+"\\HTP Geoprocessor README.pdf")
+            os.startfile(path+"\\Geospatial Simulation README.pdf")
         else:
             QMessageBox.critical(self.iface.mainWindow(),'Help','Error opening document. Look in plug-in install directory for PDF.')

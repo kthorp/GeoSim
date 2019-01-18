@@ -23,6 +23,7 @@ from qgis.PyQt.QtCore import Qt, pyqtSlot
 from qgis.PyQt.QtWidgets import QDialog, QMessageBox, QListWidgetItem, QApplication
 from qgis.core import QgsMapLayer, QgsProject, QgsField, QgsSpatialIndex, QgsFeatureRequest, QgsWkbTypes
 from .Ui_GeoprocessorDlg import Ui_GeoprocessorDlg
+
 # create the dialog for GeoprocessorDlg
 class GeoprocessorDlg(QDialog):
     def __init__(self, iface): 

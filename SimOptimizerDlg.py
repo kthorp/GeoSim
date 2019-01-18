@@ -39,15 +39,14 @@ class SimOptimizerDlg(QDialog):
         self.ui.setupUi(self)
         self.iface = iface
         self.mc = iface.mapCanvas() 
-        self.layers = self.mc.layers() #Only returns visible (active) layers
-        
+        self.layers = self.mc.layers() #Only returns visible (active) layers     
         self.ui.textSimulation.document().setMaximumBlockCount(500)
         self.ui.textOptimization.document().setMaximumBlockCount(500)
-        
-        self.ofilename = ''        
+        self.ui.btnRun.setEnabled(False)
         
     @pyqtSlot()
-    def on_btnBrowse_clicked(self):            
+    def on_btnBrowse_clicked(self):
+        self.ui.btnRun.setEnabled(False)
         f, __ = QFileDialog.getOpenFileName(self,
                                         'Specify Simulation Optimization File:',
                                         os.getcwd(),
@@ -57,50 +56,89 @@ class SimOptimizerDlg(QDialog):
             self.ofilename = f
             self.ui.tbxFile.setText(self.ofilename)
             os.chdir(os.path.dirname(str(f)))
+            self.CheckOptimizationFile()
         
     @pyqtSlot()
-    def on_tbxFile_textEdited(self):
-        self.ofilename = self.ui.tbxFile.text()  
+    def on_tbxFile_editingFinished(self):
+        self.ui.btnRun.setEnabled(False)
+        self.ofilename = self.ui.tbxFile.text()
+        self.CheckOptimizationFile()
         
-    @pyqtSlot()
-    def on_btnRun_clicked(self):
+    def CheckOptimizationFile(self):      
         
         #Open optimization file
         if not os.path.exists(self.ofilename):
-            QMessageBox.critical(self,'Simulation Optimizer','File does not exist.')
+            QMessageBox.critical(self,'Simulation Optimizer','Optimization file does not exist.')
             return
         else:
             self.ofile = OptimizationFile.OptimizationFile()
             ret = self.ofile.ReadFile(self.ofilename)
             if ret:
-                QMessageBox.critical(self,'Simulation Optimizer','Error reading file.')
+                QMessageBox.critical(self,'Simulation Optimizer','Error reading optimization file.')
                 return
             self.logfile = self.ofilename + '.log'
             f = open(self.logfile, 'w')
             f.close()
-                  
-        #Get base layer
-        flag = 1
-        for i in self.layers:
-            if i.name() == self.ofile.BaseLayer:
-                self.blayer = i
-                self.bprovider = self.blayer.dataProvider()
-                flag = 0
-                break
-        if flag:
-            QMessageBox.critical(self,'Simulation Optimizer','Base layer not found.')
-            return
+            
+        #Check control file
+        self.sim = SimControllerDlg.SimControllerDlg(self.iface)
+        self.sim.cfilename = self.ofile.ControlFile
+        self.sim.CheckControlFile()
         
+        #Check base layer
+        if self.ofile.BaseLayer != self.sim.cfile.BaseLayer:
+            QMessageBox.warning(self,'Simulation Optimizer',
+                                'Different base layers in control and optimization files.  Using control file base layer')
+        
+        #Check that optimization parameters are input attributes in the control file
+        for key1 in sorted(self.ofile.OptAttributes.keys()):
+            found = 0
+            for key2 in sorted(self.sim.cfile.AttributeCode.keys()):
+                if self.ofile.OptAttributes[key1][0] == self.sim.cfile.AttributeCode[key2][0]:
+                    found = 1
+                    break
+            if not found:
+                QMessageBox.critical(self,'Simulation Optimizer',
+                                     'Optimization parameter not input attribute in control file: %s' % self.ofile.OptAttributes[key1][0])
+                return
+            
+        #Check measured data attributes in the base layer
+        for key in sorted(self.ofile.ObjAttributes.keys()):
+            bfindx = self.sim.bprovider.fieldNameIndex(self.ofile.ObjAttributes[key][0])
+            if bfindx < 0:
+                QMessageBox.critical(self,'Simulation Optimizer',
+                                     'Missing measured data attribute in base layer: %s' % self.ofile.ObjAttributes[key][0])
+                return
+            
+        #Check that simulated data attributes are output attributes in the control file
+        for key1 in sorted(self.ofile.ObjAttributes.keys()):
+            found = 0
+            for key2 in sorted(self.sim.cfile.AttributeType.keys()):
+                if self.ofile.ObjAttributes[key1][1] == self.sim.cfile.AttributeType[key2][0]:
+                    found = 1
+                    break
+            if not found:
+                QMessageBox.critical(self,'Simulation Optimizer',
+                                     'Simulated data attribute is not output attribute in control file: %s' 
+                                     % self.ofile.ObjAttributes[key1][1])
+                return
+
+        #Enable Run button
+        self.ui.btnRun.setEnabled(True)
+
+    @pyqtSlot()
+    def on_btnRun_clicked(self):
+                             
         #Initializations
         b1 = 0
         self.ui.ProgressBar.setValue(0)
         self.setCursor(Qt.WaitCursor)
         featreq = QgsFeatureRequest()
         if self.ui.cbxOnlySelected.isChecked():
-            self.selectedIDs = self.blayer.selectedFeaturesIds()
+            self.selectedIDs = self.sim.blayer.selectedFeatureIds()
         else:
             self.selectedIDs = []
-            for bfeat in self.bprovider.getFeatures():
+            for bfeat in self.sim.bprovider.getFeatures():
                 self.selectedIDs.append(bfeat.id())
         self.selectedIDs.sort()
         b2 = len(self.selectedIDs)
@@ -125,10 +163,10 @@ class SimOptimizerDlg(QDialog):
                            feps=self.ofile.feps,maxeval=self.ofile.maxeval,maxiter=self.ofile.maxiter,
                            maxaccept=self.ofile.maxaccept,m=self.ofile.m,n=self.ofile.n,
                            quench=self.ofile.quench,boltzmann=self.ofile.boltzmann)            
-            opt.init(self.blayer, self.bprovider, self.selectedIDs, self.ui, self.ofile, self.logfile, self.iface)
+            opt.init(self.sim, self.selectedIDs, self.ui, self.ofile, self.logfile, self.iface)
             solution = opt.run()
-            self.WriteResult(solution)
             self.UpdateGIS(solution, self.selectedIDs)
+            self.WriteResult(solution)
             self.ui.ProgressBar.setValue(float(b2)/float(b2) * 100.0)
              
         else: #Run optimization for individual features
@@ -138,7 +176,7 @@ class SimOptimizerDlg(QDialog):
                 x0[:] = []
                 lower[:] = []
                 upper[:] = []
-                bfeat = next(self.blayer.getFeatures(featreq.setFilterFid(featid)))
+                bfeat = next(self.sim.blayer.getFeatures(featreq.setFilterFid(featid)))
                 for key in sorted(self.ofile.OptAttributes.keys()):
                     x0.append(float(self.ofile.OptAttributes[key][1]))
                     lower.append(float(self.ofile.OptAttributes[key][2]))
@@ -154,16 +192,16 @@ class SimOptimizerDlg(QDialog):
                                feps=self.ofile.feps,maxeval=self.ofile.maxeval,maxiter=self.ofile.maxiter,
                                maxaccept=self.ofile.maxaccept,m=self.ofile.m,n=self.ofile.n,
                                quench=self.ofile.quench,boltzmann=self.ofile.boltzmann)
-                opt.init(self.blayer, self.bprovider, [bfeat.id()], self.ui, self.ofile, self.logfile, self.iface)
+                opt.init(self.sim, [bfeat.id()], self.ui, self.ofile, self.logfile, self.iface)
                 solution = opt.run()
                 self.UpdateGIS(solution, [bfeat.id()])
                 self.WriteResult(solution)
                 self.ui.ProgressBar.setValue(float(b1)/float(b2) * 100.0)
             
         if self.ui.cbxOnlySelected.isChecked():
-            self.blayer.setSelectedFeatures(self.selectedIDs)
+            self.sim.blayer.selectByIds(self.selectedIDs)
         else:
-            self.blayer.removeSelection()
+            self.sim.blayer.removeSelection()
                 
         self.setCursor(Qt.ArrowCursor)
     
@@ -195,36 +233,31 @@ class SimOptimizerDlg(QDialog):
         for featid in bfeatids:
             i+=1
             attr.clear()
-            bfeat = next(self.blayer.getFeatures(featreq.setFilterFid(featid)))       
+            bfeat = next(self.sim.blayer.getFeatures(featreq.setFilterFid(featid)))       
             for key in sorted(self.ofile.OptAttributes.keys()):
-                bfindx = self.bprovider.fieldNameIndex(self.ofile.OptAttributes[key][0])
-                ftype = str(self.bprovider.fields()[bfindx].typeName())
-                if ftype in ['Integer']:
+                bfindx = self.sim.bprovider.fieldNameIndex(self.ofile.OptAttributes[key][0])
+                ftype = str(self.sim.bprovider.fields()[bfindx].typeName())
+                if ftype in ['Integer','Integer64']:
                     value = int(solution[6][key])
                 elif ftype in ['Real', 'Double']:
                     value = float(solution[6][key])
                 if int(self.ofile.OptAttributes[key][4]) in [0,i]: 
                     attr.update({bfindx:value})                    
-            result = self.bprovider.changeAttributeValues({bfeat.id():attr})
+            result = self.sim.bprovider.changeAttributeValues({bfeat.id():attr})
             if not result:
                 self.setCursor(Qt.ArrowCursor)
                 QMessageBox.critical(self, 'Simulation Optimizer', 'Could not change attribute value2.')
                 return 
-        self.blayer.setSelectedFeatures(bfeatids)
+        self.sim.blayer.selectByIds(bfeatids)
         QApplication.processEvents()
                                        
         #Run simulations
         for featid in bfeatids:
-            sim = SimControllerDlg.SimControllerDlg(self.iface)
-            sim.cfilename = self.ofile.ControlFile
-            sim.ui.cbxOnlySelected.setChecked(1)            
-            self.blayer.setSelectedFeatures([featid])            
-            sim.on_btnRun_clicked()       
-            for line in sim.stdout:
-                self.ui.textSimulation.append(line)
-            for line in sim.stderr:
-                self.ui.textSimulation.append(line)
-            sim.on_btnExit_clicked()    
+            self.sim.ui.cbxOnlySelected.setChecked(1)            
+            self.sim.blayer.selectByIds([featid])            
+            self.sim.on_btnRun_clicked()       
+            self.ui.textSimulation.append(self.sim.p.stdout)
+            self.ui.textSimulation.append(self.sim.p.stderr)
            
     @pyqtSlot()
     def on_btnExit_clicked(self):
@@ -232,16 +265,13 @@ class SimOptimizerDlg(QDialog):
             
 class Optimize(anneal.Anneal):        
         
-    def init(self, blayer, bprovider, bfeatids, ui, ofile, logfile, iface):
-        self.blayer = blayer
-        self.bprovider = bprovider
+    def init(self, sim, bfeatids, ui, ofile, logfile, iface):
+        self.sim = sim
         self.bfeatids = list(bfeatids)
         self.ui = ui
         self.ofile = ofile
         self.logfile = logfile
         self.iface = iface
-        self.simout = ''
-        self.optout = ''
          
     def evaluate(self):
         
@@ -253,43 +283,38 @@ class Optimize(anneal.Anneal):
         for featid in self.bfeatids:
             i+=1
             attr.clear()
-            bfeat = next(self.blayer.getFeatures(featreq.setFilterFid(featid)))
+            bfeat = next(self.sim.blayer.getFeatures(featreq.setFilterFid(featid)))
             for key in sorted(self.ofile.OptAttributes.keys()):
-                bfindx = self.bprovider.fieldNameIndex(self.ofile.OptAttributes[key][0])
-                ftype = str(self.bprovider.fields()[bfindx].typeName())
-                if ftype in ['Integer']:
+                bfindx = self.sim.bprovider.fieldNameIndex(self.ofile.OptAttributes[key][0])
+                ftype = str(self.sim.bprovider.fields()[bfindx].typeName())
+                if ftype in ['Integer','Integer64']:
                     value = int(self.current.x[key])
                 elif ftype in ['Real', 'Double']:
                     value = float(self.current.x[key])
                 if int(self.ofile.OptAttributes[key][4]) in [0,i]:                 
                     attr.update({bfindx:value})                                     
-            result = self.bprovider.changeAttributeValues({bfeat.id():attr})
+            result = self.sim.bprovider.changeAttributeValues({bfeat.id():attr})
             if not result:
                 self.setCursor(Qt.ArrowCursor)
                 QMessageBox.critical(self, 'Simulation Optimizer', 'Could not change attribute value1.')
                 return 
                  
         #Can't get attribute table repainting to work for all conditions.
-        self.blayer.setSelectedFeatures(self.bfeatids)
+        self.sim.blayer.selectByIds(self.bfeatids)
         QApplication.processEvents()
         
         #Run simulations   
         for featid in self.bfeatids:
-            sim = SimControllerDlg.SimControllerDlg(self.iface)
-            sim.cfilename = self.ofile.ControlFile
-            sim.ui.cbxOnlySelected.setChecked(1) 
-            self.blayer.setSelectedFeatures([featid])          
-            sim.on_btnRun_clicked()       
-            for line in sim.stdout:
-                self.ui.textSimulation.append(line)
-            for line in sim.stderr:
-                self.ui.textSimulation.append(line)
-            sim.on_btnExit_clicked()
+            self.sim.ui.cbxOnlySelected.setChecked(1) 
+            self.sim.blayer.selectByIds([featid])          
+            self.sim.on_btnRun_clicked()       
+            self.ui.textSimulation.append(self.sim.p.stdout)
+            self.ui.textSimulation.append(self.sim.p.stderr)
         
         #Calculate error
         sqrerr = []
         for featid in self.bfeatids:
-            bfeat = next(self.blayer.getFeatures(featreq.setFilterFid(featid)))
+            bfeat = next(self.sim.blayer.getFeatures(featreq.setFilterFid(featid)))
             for key in sorted(self.ofile.ObjAttributes.keys()):
                 measured = float(bfeat.attribute(self.ofile.ObjAttributes[key][0]))
                 simulated = float(bfeat.attribute(self.ofile.ObjAttributes[key][1]))
