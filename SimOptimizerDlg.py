@@ -83,7 +83,8 @@ class SimOptimizerDlg(QDialog):
         #Check control file
         self.sim = SimControllerDlg.SimControllerDlg(self.iface)
         self.sim.cfilename = self.ofile.ControlFile
-        self.sim.CheckControlFile()
+        if self.sim.CheckControlFile():
+            return
         
         #Check base layer
         if self.ofile.BaseLayer != self.sim.cfile.BaseLayer:

@@ -65,18 +65,18 @@ class SimControllerDlg(QDialog):
         #Open control file
         if not os.path.exists(self.cfilename):
             QMessageBox.critical(self,'Simulation Controller','Control file does not exist.')
-            return
+            return 1
         else:
             self.cfile = ControlFile.ControlFile()
             ret = self.cfile.ReadFile(self.cfilename)
             if ret:
                 QMessageBox.critical(self,'Simulation Controller','Error reading control file.')
-                return 
+                return 1 
                     
         #Set working directory
         if not os.path.exists(self.cfile.ModelDirectory):
             QMessageBox.critical(self,'Simulation Controller','Model directory does not exist.')
-            return
+            return 1
         else:
             os.chdir(self.cfile.ModelDirectory)
 
@@ -89,24 +89,24 @@ class SimControllerDlg(QDialog):
                 count+=1
         if not count: #Count==0
             QMessageBox.critical(self,'Simulation Controller','Base layer not found.')
-            return
+            return 1
         if count > 1:
             QMessageBox.critical(self,'Simulation Controller','Found more than one layer with base layer name.')
-            return
+            return 1
 
         #Check template files
         for key in sorted(self.cfile.TemplateInput.keys()):
             if not os.path.exists(self.cfile.TemplateInput[key][0]):
                 QMessageBox.critical(self,'Simulation Controller',
                                      'File does not exist: %s' % self.cfile.TemplateInput[key][0])
-                return
+                return 1
             else:
                 f = open(self.cfile.TemplateInput[key][0], 'r')
                 lines = f.readlines()
                 f.close()
                 if lines[0][0:41] != 'Geospatial Simulation Template (GST) File':
                     QMessageBox.critical(self, 'Simulation Controller', 'Check template file.')
-                    return
+                    return 1
         
         #Check for input attributes in base layer
         for key in sorted(self.cfile.AttributeCode.keys()):
@@ -114,21 +114,21 @@ class SimControllerDlg(QDialog):
             if bfindx < 0:
                 QMessageBox.critical(self,'Simulation Controller',
                                      'Missing attribute in base layer: %s' % self.cfile.AttributeCode[key][0])
-                return
+                return 1
                 
         #Check instruction files
         for key in sorted(self.cfile.InstructionOutput.keys()):
             if not os.path.exists(self.cfile.InstructionOutput[key][0]):
                 QMessageBox.critical(self,'Simulation Controller',
                                      'File does not exist: %s' % self.cfile.InstructionOutput[key][0])
-                return
+                return 1
             else:
                 f = open(self.cfile.InstructionOutput[key][0], 'r')
                 lines = f.readlines()
                 f.close()
                 if lines[0][0:44] != 'Geospatial Simulation Instruction (GSI) File':
                     QMessageBox.critical(self, 'Simulation Controller','Check instruction file.')
-                    return
+                    return 1
                 for line in lines[1:]:
                     line = line.split(',')
                     if len(line) < 2:
@@ -141,7 +141,7 @@ class SimControllerDlg(QDialog):
                     if not found:
                         QMessageBox.critical(self, 'Simulation Controller',
                                               'Check control file for missing output attribute: ' + line[0])
-                        return 
+                        return 1 
                         
         #Check for output attributes in base layer.  Add if missing.
         for key in sorted(self.cfile.AttributeType.keys()):                                              
@@ -168,6 +168,8 @@ class SimControllerDlg(QDialog):
                 
         #Enable Run button
         self.ui.btnRun.setEnabled(True)
+        
+        return 0
 
     @pyqtSlot()
     def on_btnRun_clicked(self):
