@@ -27,7 +27,7 @@ about = Geospatial tool for managing point-based simulation models
 # tags are comma separated with spaces allowed
 tags=
 
-homepage=http://plugins.qgis.org/plugins/geospatialsimulation/
+homepage=https://github.com/kthorp/GeoSim
 tracker=https://github.com/kthorp/GeoSim/issues
 repository=https://github.com/kthorp/GeoSim
 icon=icon.png
