@@ -1,7 +1,7 @@
 # GeoSim
 A model-independent, open-source geospatial tool for managing point-based environmental model simulations at multiple spatial locations
 
-Additional information and examples for using GeoSim are [here](https://github.com/kthorp/GeoSim/tree/main/Geospatial_Simulation_README.pdf).
+Additional information and examples for using GeoSim are [here](https://github.com/kthorp/GeoSim/blob/main/Geospatial_Simulation_README.pdf).
 
 The GeoSim package is further described and used in the following research:
 
